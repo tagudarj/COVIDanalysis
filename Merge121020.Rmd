@@ -1,0 +1,65 @@
+---
+title: "Merge Data - 121020"
+output: html_document
+---
+
+```{r load_packages}
+library(tidyverse)
+library(xlsx)
+```
+
+
+```{r read_data}
+#Reading the categories
+students <- readxl::read_excel("data/students121020.xlsx")
+faculty <- readxl::read_excel("data/faculty121020.xlsx")
+staff <- readxl::read_excel("data/staff121020.xlsx")
+#Reading the residence categories
+off_campus <- readxl::read_excel("data/offcampus-students121020.xlsx")
+on_campus <- readxl::read_excel("data/oncampus-students121020.xlsx")
+#Reading the tested data
+tested <- readxl::read_excel("data/tested121020.xlsx")
+```
+
+```{r merge1}
+#Joining the students data to the faculty datae
+students_faculty <- students %>%
+  full_join(faculty, by = c("snumber", "group", "gen", "age", "ec1", "ec2", "ec3", "ec4", "city", "state", "class", "admit"))
+```
+
+```{r merge2}
+#Joinging the students-faculty data to the staff data
+person <- students_faculty %>%
+  full_join(staff, by = c("snumber", "group", "gen", "age", "ec1", "ec2", "ec3", "ec4", "city", "state", "class", "admit"))
+```
+
+```{r merge3}
+#Joining on-campus residence to off-campus residence
+residence <- on_campus %>%
+  full_join(off_campus, by = c("snumber", "residence")) %>%
+  select("snumber", "residence")
+```
+
+```{r merge4}
+#Joining the residence data to person data
+person_res <- person %>%
+  full_join(residence, by = c("snumber")) %>%
+  select("snumber", "residence", "group", "gen", "age", "ec1", "ec2", "ec3", "ec4", "city", "state", "class", "admit")
+```
+
+```{r merge5}
+#Joining the residence data to person data
+final <- person_res %>%
+  full_join(tested, by = c("snumber")) %>%
+  select("snumber", "group", "gen", "age", "ec1", "ec2", "ec3", "ec4", "city", "state", "class", "admit", "residence", "tested")
+```
+
+```{r}
+write_csv(final, file = "Merge-121020.csv")
+```
+
+
+
+
+
+
